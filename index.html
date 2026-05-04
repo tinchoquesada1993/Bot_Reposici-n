@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bot Repuestos</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a;height:100vh;display:flex;flex-direction:column}
+#wrap{display:flex;flex-direction:column;height:100vh;max-width:960px;margin:0 auto;width:100%;background:#fff;border-left:1px solid #e5e5e0;border-right:1px solid #e5e5e0}
+#cfg{padding:10px 16px;border-bottom:1px solid #e5e5e0;background:#fafaf8;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#cfg label{font-size:12px;color:#666;white-space:nowrap}
+#cfg input[type=text]{font-size:12px;padding:5px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a1a;font-family:inherit}
+#sid{width:360px}
+#akey{width:220px}
+#load-btn{font-size:12px;padding:6px 14px;border:1px solid #bbb;border-radius:6px;background:#fff;color:#1a1a1a;cursor:pointer;white-space:nowrap;font-family:inherit}
+#load-btn:hover{background:#f0f0ee}
+#load-btn:disabled{opacity:.4;cursor:not-allowed}
+#status{font-size:11px;color:#999;flex:1;text-align:right}
+#sheets-row{padding:7px 16px;border-bottom:1px solid #e5e5e0;background:#fafaf8;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#sheets-row label{font-size:11px;color:#999}
+.sheet-inp{width:130px;font-size:11px;padding:3px 6px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;font-family:inherit}
+.sep{font-size:11px;color:#ccc;margin:0 2px}
+#stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 16px;border-bottom:1px solid #e5e5e0}
+.stat{background:#f5f5f3;border-radius:8px;padding:8px 12px}
+.stat-n{font-size:22px;font-weight:500}
+.stat-l{font-size:11px;color:#888;margin-top:2px}
+.crit{color:#a32d2d}.warn{color:#ba7517}
+#frow{display:flex;align-items:center;gap:8px;padding:7px 16px;border-bottom:1px solid #e5e5e0}
+#frow label{font-size:12px;color:#666}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;cursor:pointer;font-weight:500;border:1px solid transparent;user-select:none}
+.b-all{background:#fff;border-color:#bbb;color:#666}
+.b-peu{background:#eaf3de;color:#27500a}
+.b-fiat{background:#e6f1fb;color:#0c447c}
+.b-dim{opacity:.4}
+#msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.mu{align-self:flex-end;background:#f0f0ee;border:1px solid #e0e0dc;border-radius:12px 12px 3px 12px;padding:9px 13px;font-size:13px;max-width:82%;line-height:1.5}
+.mb{align-self:flex-start;font-size:13px;line-height:1.6;max-width:95%}
+.mb p{margin:3px 0}
+.mb .tw{background:#f5f5f3;border:1px solid #e5e5e0;border-radius:8px;overflow:hidden;margin-top:6px;overflow-x:auto}
+.mb table{border-collapse:collapse;width:100%;font-size:12px}
+.mb th{text-align:left;font-weight:500;color:#666;padding:5px 10px;border-bottom:1px solid #e5e5e0;font-size:11px;white-space:nowrap;background:#fafaf8}
+.mb td{padding:5px 10px;border-bottom:1px solid #e5e5e0;white-space:nowrap}
+.mb tr:last-child td{border-bottom:none}
+.think{color:#aaa;font-style:italic;font-size:12px}
+#qrow{display:flex;flex-wrap:wrap;gap:6px;padding:6px 16px;border-top:1px solid #e5e5e0}
+.qb{font-size:12px;padding:5px 11px;border:1px solid #e0e0dc;border-radius:20px;background:#fafaf8;color:#666;cursor:pointer;white-space:nowrap;font-family:inherit}
+.qb:hover{color:#1a1a1a;border-color:#bbb}
+#irow{display:flex;gap:8px;padding:10px 16px;border-top:1px solid #e5e5e0}
+#inp{flex:1;font-size:13px;padding:9px 13px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#1a1a1a;font-family:inherit}
+#inp:focus{outline:none;border-color:#aaa}
+#sbtn{font-size:13px;padding:0 16px;height:38px;border:1px solid #bbb;border-radius:20px;background:#fff;color:#1a1a1a;cursor:pointer;font-family:inherit}
+#sbtn:hover{background:#f0f0ee}
+#sbtn:disabled{opacity:.4;cursor:not-allowed}
+strong{font-weight:500}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="cfg">
+    <label>Sheet ID</label>
+    <input type="text" id="sid" value="1OXk2rjQWQyXvB_BEGhVwzqdcW12JlkOpaijkC7oCA9Y"/>
+    <label>API Key</label>
+    <input type="text" id="akey" value="AIzaSyAmD8nVT_XTyNnL62FwElS7WKCtNr43e-E"/>
+    <button id="load-btn" onclick="loadSheets()">Cargar datos</button>
+    <span id="status">Sin datos</span>
+  </div>
+  <div id="sheets-row">
+    <label>Hojas:</label>
+    <label>Stock</label><input class="sheet-inp" id="sh-stock" value="Stock"/>
+    <span class="sep">|</span>
+    <label>Ventas</label><input class="sheet-inp" id="sh-ventas" value="Ventas"/>
+    <span class="sep">|</span>
+    <label>Precios Fiat</label><input class="sheet-inp" id="sh-pfiat" value="Precios Fiat"/>
+    <span class="sep">|</span>
+    <label>Precios Peugeot</label><input class="sheet-inp" id="sh-ppeu" value="Precios Peugeot"/>
+  </div>
+  <div id="stats">
+    <div class="stat"><div class="stat-n" id="s-ventas">—</div><div class="stat-l">con ventas</div></div>
+    <div class="stat"><div class="stat-n crit" id="s-repo">—</div><div class="stat-l">necesitan repo</div></div>
+    <div class="stat"><div class="stat-n warn" id="s-low">—</div><div class="stat-l">cobertura baja</div></div>
+    <div class="stat"><div class="stat-n" id="s-costo">—</div><div class="stat-l">costo total repo</div></div>
+  </div>
+  <div id="frow">
+    <label>Marca:</label>
+    <span class="badge b-all" id="f-all" onclick="setFilter('all')">Todas</span>
+    <span class="badge b-peu b-dim" id="f-Peugeot" onclick="setFilter('Peugeot')">Peugeot</span>
+    <span class="badge b-fiat b-dim" id="f-Fiat" onclick="setFilter('Fiat')">Fiat</span>
+    <label style="margin-left:12px">Días reposición:</label>
+    <input type="number" id="dias" value="45" min="1" max="180" style="width:55px;font-size:12px;padding:4px 6px;border:1px solid #ddd;border-radius:5px" onchange="recalc()"/>
+  </div>
+  <div id="msgs">
+    <div class="mb">Cargá los datos con el botón de arriba. El Sheet debe tener 4 hojas:<br>
+    <strong>Stock</strong>, <strong>Ventas</strong>, <strong>Precios Fiat</strong> (TXT con pipes) y <strong>Precios Peugeot</strong> (columnas REFERENCIA / PVP AR / DESC / PNC AR).<br>
+    Podés renombrar las hojas en la segunda fila si las llamaste diferente.</div>
+  </div>
+  <div id="qrow">
+    <button class="qb" onclick="qs('¿Qué repuestos necesitan reposición?')">¿Qué comprar?</button>
+    <button class="qb" onclick="qs('¿Cuáles tienen cobertura crítica, menos de 15 días?')">Críticos</button>
+    <button class="qb" onclick="qs('Generame una orden de compra agrupada por marca')">Orden de compra</button>
+    <button class="qb" onclick="qs('¿Cuáles tienen stock pero no tuvieron ventas?')">Sin rotación</button>
+    <button class="qb" onclick="qs('¿Cuál es el costo total estimado de reposición?')">Costo total</button>
+  </div>
+  <div id="irow">
+    <input id="inp" placeholder="Consultá sobre tus repuestos..." onkeydown="if(event.key==='Enter')send()"/>
+    <button id="sbtn" onclick="send()" disabled>Enviar</button>
+  </div>
+</div>
+
+<script>
+let DATA = null, filter = 'all', hist = [], busy = false;
+
+function stripPrefix(art) {
+  const m = String(art).match(/^\d+\/(.*)/);
+  return m ? m[1].replace(/\/$/, '').trim() : String(art).trim();
+}
+
+function parsePrecioAR(s) {
+  if (s === null || s === undefined) return null;
+  s = String(s).trim().replace(/[^\d.,]/g, '');
+  if (!s) return null;
+  const li = s.lastIndexOf('.'), lc = s.lastIndexOf(',');
+  if (lc > li) s = s.replace(/\./g, '').replace(',', '.');
+  else s = s.replace(/,/g, '');
+  const v = parseFloat(s);
+  return isNaN(v) ? null : v;
+}
+
+async function fetchRange(sheetId, apiKey, range) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}?key=${apiKey}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`Error ${r.status} al leer "${range}": ${(await r.text()).slice(0,150)}`);
+  return (await r.json()).values || [];
+}
+
+async function loadSheets() {
+  const sheetId = document.getElementById('sid').value.trim();
+  const apiKey  = document.getElementById('akey').value.trim();
+  const shStock  = document.getElementById('sh-stock').value.trim();
+  const shVentas = document.getElementById('sh-ventas').value.trim();
+  const shPFiat  = document.getElementById('sh-pfiat').value.trim();
+  const shPPeu   = document.getElementById('sh-ppeu').value.trim();
+  if (!sheetId || !apiKey) { setStatus('Completá el Sheet ID y la API Key'); return; }
+  const btn = document.getElementById('load-btn');
+  btn.disabled = true; setStatus('Cargando...');
+  try {
+    const [stockRows, ventasRows, preciosFiatRows, preciosPeuRows] = await Promise.all([
+      fetchRange(sheetId, apiKey, shStock  + '!A:Z'),
+      fetchRange(sheetId, apiKey, shVentas + '!A:Z'),
+      fetchRange(sheetId, apiKey, shPFiat  + '!A:Z'),
+      fetchRange(sheetId, apiKey, shPPeu   + '!A:Z'),
+    ]);
+    DATA = parseAll(stockRows, ventasRows, preciosFiatRows, preciosPeuRows);
+    recalc(); hist = [];
+    const { stockMap, ventasMap, preciosFiatMap, preciosPeuMap, fechaDesde, fechaHasta, diasPeriodo } = DATA;
+    setStatus('Actualizado ' + new Date().toLocaleTimeString('es-AR'));
+    document.getElementById('sbtn').disabled = false;
+    addMsg(`Datos cargados. Stock: <strong>${stockMap.size}</strong> ítems · Ventas: <strong>${ventasMap.size}</strong> refs · Precios Fiat: <strong>${preciosFiatMap.size}</strong> · Precios Peugeot: <strong>${preciosPeuMap.size}</strong><br>Período: ${fechaDesde} – ${fechaHasta} (${diasPeriodo} días)`, 'b', true);
+  } catch(e) {
+    setStatus('Error: ' + e.message.slice(0,90));
+    addMsg('No pude cargar los datos: ' + e.message, 'b');
+  }
+  btn.disabled = false;
+}
+
+function parseAll(stockRows, ventasRows, preciosFiatRows, preciosPeuRows) {
+  // STOCK
+  let sHi = stockRows.findIndex(r => r.some(c => /art[ií]culo/i.test(String(c))));
+  if (sHi < 0) sHi = 0;
+  const sHdr = (stockRows[sHi]||[]).map(c => String(c).toLowerCase().trim());
+  const sc = {
+    art:   sHdr.findIndex(c => /art[ií]culo/.test(c)),
+    exist: sHdr.findIndex(c => /exist/.test(c)),
+    desc:  sHdr.findIndex(c => /descrip/.test(c)),
+  };
+  const stockMap = new Map();
+  for (let i = sHi+1; i < stockRows.length; i++) {
+    const r = stockRows[i];
+    const art = String(r[sc.art]||'').trim();
+    if (!art) continue;
+    const cod = stripPrefix(art);
+    const marca = art.startsWith('21/') ? 'Fiat' : art.startsWith('1/') ? 'Peugeot' : 'Otra';
+    const exist = parseFloat(r[sc.exist])||0;
+    const key = cod+'|'+marca;
+    if (stockMap.has(key)) stockMap.get(key).stock += exist;
+    else stockMap.set(key, { cod, marca, desc: String(r[sc.desc]||''), stock: exist });
+  }
+
+  // VENTAS
+  let vHi = ventasRows.findIndex(r => r.some(c => /ref.*art/i.test(String(c))));
+  if (vHi < 0) vHi = 0;
+  const vHdr = (ventasRows[vHi]||[]).map(c => String(c).toLowerCase().trim());
+  const vc = {
+    ref:  vHdr.findIndex(c => /ref.*art/.test(c)),
+    val:  vHdr.findIndex(c => /valor.*rep|valor_rep/i.test(c)),
+    den:  vHdr.findIndex(c => /denominac/i.test(c)),
+    fech: vHdr.findIndex(c => /f.*cierr/i.test(c)),
+  };
+  const ventasMap = new Map();
+  const fechas = [];
+  for (let i = vHi+1; i < ventasRows.length; i++) {
+    const r = ventasRows[i];
+    const ref = String(r[vc.ref]||'').trim();
+    if (!ref) continue;
+    const val = parsePrecioAR(r[vc.val]);
+    if (!val || val <= 0) continue;
+    const cod = stripPrefix(ref);
+    const marca = ref.startsWith('21/') ? 'Fiat' : ref.startsWith('1/') ? 'Peugeot' : 'Otra';
+    if (vc.fech >= 0 && r[vc.fech]) fechas.push(String(r[vc.fech]));
+    const key = cod+'|'+marca;
+    if (ventasMap.has(key)) ventasMap.get(key).cant++;
+    else ventasMap.set(key, { cod, marca, desc: String(r[vc.den]||''), cant: 1 });
+  }
+  let fechaDesde='—', fechaHasta='—', diasPeriodo=90;
+  const pf = fechas.map(f => {
+    const p = f.split(/[\/\-]/);
+    if (p.length!==3) return null;
+    const d = p[0].length===4 ? new Date(p[0],p[1]-1,p[2]) : new Date(p[2].length===2?'20'+p[2]:p[2],p[1]-1,p[0]);
+    return isNaN(d)?null:d;
+  }).filter(Boolean).sort((a,b)=>a-b);
+  if (pf.length>1) {
+    fechaDesde = pf[0].toLocaleDateString('es-AR');
+    fechaHasta = pf[pf.length-1].toLocaleDateString('es-AR');
+    diasPeriodo = Math.max(1, Math.round((pf[pf.length-1]-pf[0])/86400000)+1);
+  }
+
+  // PRECIOS FIAT: TXT pipes → Mat Price × (1 - Discount/100)
+  const preciosFiatMap = new Map();
+  const fiatRe = /^\|\s*(\S+)\s+\|.{0,50}\|\s*([\d.,]+)\s*\|\s*([\d.,]+)-?\s*\|/;
+  for (const r of preciosFiatRows) {
+    const raw = String(r[0]||'').trim();
+    const m = fiatRe.exec(raw);
+    if (m) {
+      const cod = m[1].trim();
+      const pvp = parsePrecioAR(m[2]);
+      const desc = parsePrecioAR(m[3]);
+      if (cod && pvp !== null) {
+        preciosFiatMap.set(cod, desc !== null ? Math.round(pvp*(1-desc/100)) : Math.round(pvp));
+      }
+      continue;
+    }
+    if (r.length >= 3) {
+      const cod = String(r[0]||'').trim();
+      const pvp = parsePrecioAR(r[2]);
+      const desc = r.length >= 4 ? parsePrecioAR(r[3]) : null;
+      if (cod && pvp && !preciosFiatMap.has(cod))
+        preciosFiatMap.set(cod, desc!==null ? Math.round(pvp*(1-desc/100)) : Math.round(pvp));
+    }
+  }
+
+  // PRECIOS PEUGEOT: columnas REFERENCIA | DESCRIP | PVP AR | DESC | PNC AR → usar PNC AR
+  const preciosPeuMap = new Map();
+  let pHi = preciosPeuRows.findIndex(r => r.some(c => /referencia/i.test(String(c))));
+  if (pHi < 0) pHi = 0;
+  const pHdr = (preciosPeuRows[pHi]||[]).map(c => String(c).toLowerCase().trim());
+  const pc = {
+    ref:  pHdr.findIndex(c => /referencia/.test(c)),
+    pnc:  pHdr.findIndex(c => /pnc/.test(c)),
+    pvp:  pHdr.findIndex(c => /pvp/.test(c)),
+    desc: pHdr.findIndex(c => c==='desc'),
+  };
+  for (let i = pHi+1; i < preciosPeuRows.length; i++) {
+    const r = preciosPeuRows[i];
+    const cod = String(r[pc.ref]||'').trim();
+    if (!cod) continue;
+    let precio = pc.pnc >= 0 ? parsePrecioAR(r[pc.pnc]) : null;
+    if (!precio && pc.pvp >= 0) {
+      const pvp = parsePrecioAR(r[pc.pvp]);
+      const desc = pc.desc >= 0 ? parsePrecioAR(r[pc.desc]) : null;
+      if (pvp) precio = desc ? Math.round(pvp*(1-desc)) : Math.round(pvp);
+    }
+    if (cod && precio && !preciosPeuMap.has(cod)) preciosPeuMap.set(cod, precio);
+  }
+
+  return { stockMap, ventasMap, preciosFiatMap, preciosPeuMap, fechaDesde, fechaHasta, diasPeriodo };
+}
+
+function getPrecio(cod, marca) {
+  if (!DATA) return null;
+  if (marca==='Fiat') return DATA.preciosFiatMap.get(cod)||null;
+  if (marca==='Peugeot') return DATA.preciosPeuMap.get(cod)||null;
+  return DATA.preciosFiatMap.get(cod)||DATA.preciosPeuMap.get(cod)||null;
+}
+
+function buildItems() {
+  if (!DATA) return [];
+  const { stockMap, ventasMap, diasPeriodo } = DATA;
+  const dias = parseInt(document.getElementById('dias').value)||45;
+  const items = [];
+  for (const key of new Set([...stockMap.keys(), ...ventasMap.keys()])) {
+    const [cod, marca] = key.split('|');
+    if (filter!=='all' && marca!==filter) continue;
+    const s = stockMap.get(key)||{};
+    const v = ventasMap.get(key)||{};
+    const stock = s.stock||0, cant = v.cant||0;
+    const precio = getPrecio(cod, marca);
+    const cd = cant/diasPeriodo;
+    const diasCob = cd>0 ? Math.round(stock/cd*10)/10 : (stock>0?999:0);
+    const repo = cd>0 ? Math.max(0, Math.ceil(cd*dias-stock)) : 0;
+    const costoRepo = repo>0&&precio ? Math.round(repo*precio) : null;
+    items.push({ cod, marca, desc: s.desc||v.desc||'', stock, cant, diasCob, repo, precio, costoRepo });
+  }
+  return items;
+}
+
+function recalc() {
+  const items = buildItems();
+  const dias = parseInt(document.getElementById('dias').value)||45;
+  const cv = items.filter(x=>x.cant>0);
+  const rp = items.filter(x=>x.repo>0);
+  const lw = items.filter(x=>x.diasCob>0&&x.diasCob<dias&&x.repo===0);
+  const ct = rp.reduce((a,b)=>a+(b.costoRepo||0),0);
+  document.getElementById('s-ventas').textContent = cv.length;
+  document.getElementById('s-repo').textContent   = rp.length;
+  document.getElementById('s-low').textContent    = lw.length;
+  document.getElementById('s-costo').textContent  = ct>0?'$'+Math.round(ct).toLocaleString('es-AR'):'—';
+}
+
+function setFilter(f) {
+  filter = f;
+  ['all','Peugeot','Fiat'].forEach(x => document.getElementById('f-'+x)?.classList.toggle('b-dim', x!==f));
+  if (DATA) recalc();
+}
+
+function buildSystemPrompt() {
+  const items = buildItems();
+  const dias = parseInt(document.getElementById('dias').value)||45;
+  const { fechaDesde, fechaHasta, diasPeriodo } = DATA;
+  const cv = items.filter(x=>x.cant>0);
+  const sr = items.filter(x=>x.cant===0&&x.stock>0).sort((a,b)=>b.stock-a.stock).slice(0,60);
+  return `Sos un asistente experto en gestión de repuestos de taller automotriz (Peugeot y Fiat).
+Período: ${fechaDesde} al ${fechaHasta} (${diasPeriodo} días). Marca: ${filter==='all'?'todas':filter}. Meta: ${dias} días.
+Precios: Fiat = Mat Price×(1−Desc). Peugeot = PNC AR.
+
+ÍTEMS CON VENTAS (${cv.length}):
+${JSON.stringify(cv.map(x=>({cod:x.cod,marca:x.marca,desc:x.desc.slice(0,40),stock:x.stock,vendidos:x.cant,dias_cob:x.diasCob,repo:x.repo,precio:x.precio,costo_repo:x.costoRepo})))}
+
+SIN ROTACIÓN top ${sr.length}:
+${JSON.stringify(sr.map(x=>({cod:x.cod,marca:x.marca,desc:x.desc.slice(0,40),stock:x.stock})))}
+
+REGLAS: consumo_diario=vendidos/${diasPeriodo}. dias_cob 999=stock sin ventas, 0=sin stock. repo=MAX(0,CEIL(cd×${dias}−stock)). Crítico<15, Bajo 15–${dias}, OK>${dias}.
+Respondé en español, conciso. Tablas markdown con |. Columnas: Código, Descripción, Marca, Stock, Vendidos, Días cob., Repo, Precio neto, Costo repo.`;
+}
+
+async function send() {
+  if (!DATA) { addMsg('Primero cargá los datos.','b'); return; }
+  const inp = document.getElementById('inp');
+  const txt = inp.value.trim();
+  if (!txt||busy) return;
+  inp.value = '';
+  addMsg(txt,'u');
+  hist.push({role:'user',content:txt});
+  busy=true; document.getElementById('sbtn').disabled=true;
+  const th = addMsg('<span class="think">Analizando...</span>','b',true);
+  try {
+    const res = await fetch('http://localhost:8010/proxy/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:buildSystemPrompt(),messages:hist})
+    });
+    const d = await res.json();
+    const reply = d.content?.[0]?.text||'Sin respuesta.';
+    th.remove();
+    const el = addMsg('','b'); renderMd(el,reply);
+    hist.push({role:'assistant',content:reply});
+    if (hist.length>14) hist=hist.slice(-14);
+  } catch(e) { th.remove(); addMsg('Error: '+e.message,'b'); }
+  busy=false; document.getElementById('sbtn').disabled=false;
+}
+
+function addMsg(html,type,raw=false){
+  const msgs=document.getElementById('msgs');
+  const el=document.createElement('div');
+  el.className=type==='u'?'mu':'mb';
+  if(raw||type==='u') el.innerHTML=html; else el.textContent=html;
+  msgs.appendChild(el); msgs.scrollTop=msgs.scrollHeight;
+  return el;
+}
+
+function renderMd(el,txt){
+  const lines=txt.split('\n'); let out='',inTable=false,tlines=[];
+  for(const l of lines){
+    if(l.trim().startsWith('|')){ if(!inTable){inTable=true;tlines=[];} tlines.push(l); }
+    else { if(inTable){out+=buildTable(tlines);tlines=[];inTable=false;} out+=l?'<p>'+fmt(l)+'</p>':'<br>'; }
+  }
+  if(inTable) out+=buildTable(tlines);
+  el.innerHTML=out;
+}
+function fmt(l){ return l.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code style="background:#f0f0ee;padding:1px 4px;border-radius:3px;font-size:11px">$1</code>'); }
+function buildTable(lines){
+  const rows=lines.filter(l=>!l.match(/^\|[\s\-|]+\|$/));
+  if(!rows.length) return '';
+  let h='<div class="tw"><table>';
+  rows.forEach((r,i)=>{ const cells=r.split('|').filter((_,j,a)=>j>0&&j<a.length-1); const tag=i===0?'th':'td'; h+='<tr>'+cells.map(c=>`<${tag}>${c.trim()}</${tag}>`).join('')+'</tr>'; });
+  return h+'</table></div>';
+}
+function qs(t){ document.getElementById('inp').value=t; send(); }
+function setStatus(t){ document.getElementById('status').textContent=t; }
+</script>
+</body>
+</html>
